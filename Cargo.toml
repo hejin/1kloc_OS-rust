@@ -1,0 +1,15 @@
+[package]
+name = "riscv-toy-OS"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+# no dependencies
+
+[build-dependencies]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

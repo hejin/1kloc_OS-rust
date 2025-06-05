@@ -1,4 +1,6 @@
 /disk/*
+/target/*
+kernel
 !/disk/.gitkeep
 *.map
 *.tar
@@ -7,3 +9,4 @@
 *.bin
 *.log
 *.pcap
+Cargo.lock
