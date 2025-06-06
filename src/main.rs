@@ -2,7 +2,10 @@
 #![no_main]
 #![warn(unsafe_op_in_unsafe_fn)]
 
+mod sbi;
+
 use core::arch::asm;
+use sbi::sbi_call;
 use core::ptr;
 use core::panic::PanicInfo;
 
@@ -10,6 +13,15 @@ unsafe extern "C" {
     static mut __bss: u8;
     static mut __bss_end: u8;
     static __stack_top: u8;
+}
+
+// console putchar using SBI extension 0x01
+pub fn putchar(ch: u8) {
+	sbi_call(
+		ch as isize, 0, 0, 0, 0, 0,
+		0, // function ID
+		1  // extension ID: Console putchar
+	);
 }
 
 #[unsafe(no_mangle)]
@@ -30,7 +42,14 @@ pub unsafe extern "C" fn kernel_main() -> ! {
 
     unsafe { memset(bss_start, 0, bss_size); }
 
-    loop {}
+		let msg = b"\n\nHello World!\n";
+		for &ch in msg {
+			putchar(ch);
+		}
+
+    loop {
+        asm!("wfi", options(nomem, nostack));
+    }
 }
 
 #[panic_handler]
