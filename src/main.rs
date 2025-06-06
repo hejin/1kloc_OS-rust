@@ -3,9 +3,9 @@
 #![warn(unsafe_op_in_unsafe_fn)]
 
 mod sbi;
+mod console;
 
 use core::arch::asm;
-use sbi::sbi_call;
 use core::ptr;
 use core::panic::PanicInfo;
 
@@ -13,15 +13,6 @@ unsafe extern "C" {
     static mut __bss: u8;
     static mut __bss_end: u8;
     static __stack_top: u8;
-}
-
-// console putchar using SBI extension 0x01
-pub fn putchar(ch: u8) {
-	sbi_call(
-		ch as isize, 0, 0, 0, 0, 0,
-		0, // function ID
-		1  // extension ID: Console putchar
-	);
 }
 
 #[unsafe(no_mangle)]
@@ -42,10 +33,17 @@ pub unsafe extern "C" fn kernel_main() -> ! { unsafe {
 
     memset(bss_start, 0, bss_size);
 
-		let msg = b"\n\nHello World!\n";
-		for &ch in msg {
-			putchar(ch);
+		let _use_putchar = false;
+
+		if _use_putchar {
+			let msg = b"\n\nHello World!\n";
+			for &ch in msg {
+				console::_putchar(ch);
+			}
 		}
+
+		printf!("\nHello World from Rust!\n");
+		printf!("String: {}, Decimal: {}, Hex: {:#x}\n", "test", -42, 3735928559u32);
 
     loop {
         asm!("wfi", options(nomem, nostack));
