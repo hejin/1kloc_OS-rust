@@ -10,3 +10,4 @@ kernel
 *.log
 *.pcap
 Cargo.lock
+*.swp

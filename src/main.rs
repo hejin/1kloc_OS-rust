@@ -35,12 +35,12 @@ pub unsafe extern "C" fn memset(buf: *mut u8, value: u8, len: usize) -> *mut u8 
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn kernel_main() -> ! {
+pub unsafe extern "C" fn kernel_main() -> ! { unsafe {
     let bss_start = &raw mut __bss as *mut u8;
     let bss_end = &raw mut __bss_end as *mut u8;
-    let bss_size = unsafe { bss_end.offset_from(bss_start) as usize} ;
+    let bss_size =  bss_end.offset_from(bss_start) as usize;
 
-    unsafe { memset(bss_start, 0, bss_size); }
+    memset(bss_start, 0, bss_size);
 
 		let msg = b"\n\nHello World!\n";
 		for &ch in msg {
@@ -50,7 +50,7 @@ pub unsafe extern "C" fn kernel_main() -> ! {
     loop {
         asm!("wfi", options(nomem, nostack));
     }
-}
+}}
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
