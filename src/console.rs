@@ -33,3 +33,18 @@ macro_rules! printf {
 	};
 }
 
+/// Rust version of PANIC(fmt, ...)
+#[macro_export]
+macro_rules! PANIC {
+    ($fmt:literal $(, $args:expr)* $(,)?) => {{
+        $crate::printf!(
+            "PANIC: {}:{}: {}",
+            core::file!(),
+            core::line!(),
+            format_args!($fmt $(, $args)*)
+        );
+        loop {
+            { core::arch::asm!("wfi") };
+        }
+    }};
+}

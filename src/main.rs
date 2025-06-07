@@ -46,9 +46,14 @@ pub unsafe extern "C" fn kernel_main() -> ! { unsafe {
 		printf!("\nHello World from Rust!\n");
 		printf!("String: {}, Decimal: {}, Hex: {:#x}\n", "test", -42, 3735928559u32);
 
+    PANIC!("booted!");
+    //printf!("unreachable here!");
+
+		/*
     loop {
         asm!("wfi", options(nomem, nostack));
     }
+		*/
 }}
 
 #[panic_handler]
