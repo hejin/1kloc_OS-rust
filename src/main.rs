@@ -4,6 +4,7 @@
 
 mod sbi;
 mod console;
+mod common;
 
 use core::arch::asm;
 use core::ptr;
