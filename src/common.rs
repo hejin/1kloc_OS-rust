@@ -38,12 +38,12 @@ macro_rules! offset_of {
 /// Safe equivalents of libc-like routines
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, n: SizeT) -> *mut u8 {
+pub unsafe extern "C" fn memcpy(dst: *mut u8, src: *const u8, n: SizeT) -> *mut u8 { unsafe {
     for i in 0..n {
         ptr::write(dst.add(i as usize), ptr::read(src.add(i as usize)));
     }
     dst
-}
+}}
 
 /*
 #[unsafe(no_mangle)]
@@ -56,7 +56,7 @@ pub unsafe extern "C" fn memset(buf: *mut u8, c: i32, n: SizeT) -> *mut u8 {
 */
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn strcpy(dst: *mut u8, src: *const u8) -> *mut u8 {
+pub unsafe extern "C" fn strcpy(dst: *mut u8, src: *const u8) -> *mut u8 { unsafe {
     let mut d = dst;
     let mut s = src;
     loop {
@@ -69,10 +69,10 @@ pub unsafe extern "C" fn strcpy(dst: *mut u8, src: *const u8) -> *mut u8 {
         d = d.add(1);
     }
     dst
-}
+}}
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn strcmp(s1: *const u8, s2: *const u8) -> i32 {
+pub unsafe extern "C" fn strcmp(s1: *const u8, s2: *const u8) -> i32 { unsafe {
     let mut p1 = s1;
     let mut p2 = s2;
 
@@ -85,5 +85,5 @@ pub unsafe extern "C" fn strcmp(s1: *const u8, s2: *const u8) -> i32 {
         p1 = p1.add(1);
         p2 = p2.add(1);
     }
-}
+}}
 
