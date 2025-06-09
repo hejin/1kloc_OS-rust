@@ -67,7 +67,7 @@ pub struct TrapFrame {
 //#[naked]
 #[unsafe(no_mangle)]
 #[unsafe(link_section = ".text")]
-pub unsafe extern "C" fn kernel_entry() {
+pub unsafe extern "C" fn kernel_entry() { unsafe {
     asm!(
         "csrw sscratch, sp",
         "addi sp, sp, -4*31",
@@ -145,7 +145,7 @@ pub unsafe extern "C" fn kernel_entry() {
         "sret",
         options(noreturn)
     );
-}
+}}
 
 
 #[unsafe(no_mangle)]
