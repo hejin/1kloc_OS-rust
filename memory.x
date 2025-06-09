@@ -3,8 +3,10 @@ ENTRY(boot)
 SECTIONS {
     . = 0x80200000;
 
-    .text :{
+    .text : {
         KEEP(*(.text.boot));
+				. = ALIGN(4);
+				*(.text.trap);
         *(.text .text.*);
     }
 

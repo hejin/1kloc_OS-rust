@@ -11,23 +11,13 @@ use core::arch::asm;
 //use core::arch::naked_asm;
 use core::ptr;
 use core::panic::PanicInfo;
+//use crate::panic;
 
 unsafe extern "C" {
     static mut __bss: u8;
     static mut __bss_end: u8;
     static __stack_top: u8;
 }
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn memset(buf: *mut u8, value: u8, len: usize) -> *mut u8 {
-    let mut p = buf;
-    for _ in 0..len {
-        unsafe { ptr::write(p, value); }
-        unsafe { p = p.add(1); }
-    }
-    buf
-}
-
 
 #[repr(C, packed)]
 pub struct TrapFrame {
@@ -66,7 +56,7 @@ pub struct TrapFrame {
 
 //#[naked]
 #[unsafe(no_mangle)]
-#[unsafe(link_section = ".text")]
+#[unsafe(link_section = ".text.trap")]
 pub unsafe extern "C" fn kernel_entry() { unsafe {
     asm!(
         "csrw sscratch, sp",
@@ -147,6 +137,48 @@ pub unsafe extern "C" fn kernel_entry() { unsafe {
     );
 }}
 
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn memset(buf: *mut u8, value: u8, len: usize) -> *mut u8 {
+    let mut p = buf;
+    for _ in 0..len {
+        unsafe { ptr::write(p, value); }
+        unsafe { p = p.add(1); }
+    }
+    buf
+}
+
+
+/// Read a 32-bit RISC-V CSR by name.
+#[macro_export]
+macro_rules! READ_CSR {
+    ($csr:ident) => {{
+        let value: u32;
+        unsafe {
+            core::arch::asm!(concat!("csrr {0}, ", stringify!($csr)), out(reg) value);
+        }
+        value
+    }};
+}
+
+/// Write a 32-bit value to a RISC-V CSR by name.
+#[macro_export]
+macro_rules! WRITE_CSR {
+    ($csr:ident, $val:expr) => {{
+        let value: u32 = $val;
+        unsafe {
+            core::arch::asm!(concat!("csrw ", stringify!($csr), ", {0}"), in(reg) value);
+        }
+    }};
+}
+
+
+#[unsafe(no_mangle)]
+pub extern "C" fn handle_trap(_frame: *mut TrapFrame) {
+    let scause = READ_CSR!(scause);//read_scause();
+    let stval = READ_CSR!(stval);//read_stval();
+    let sepc = READ_CSR!(sepc); //read_sepc();
+    PANIC!("unexpected trap scause={:x}, stval={:x}, sepc={:x}", scause, stval, sepc);
+}
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn kernel_main() -> ! { unsafe {
@@ -165,17 +197,26 @@ pub unsafe extern "C" fn kernel_main() -> ! { unsafe {
 			}
 		}
 
-		printf!("\nHello World from Rust!\n");
-		printf!("String: {}, Decimal: {}, Hex: {:#x}\n", "test", -42, 3735928559u32);
-
-    PANIC!("booted!");
-    //printf!("unreachable here!");
+	  let _test_printf = false;
+		if _test_printf {
+			printf!("\nHello World from Rust!\n");
+			printf!("String: {}, Decimal: {}, Hex: {:#x}\n", "test", -42, 3735928559u32);
+		}
 
 		/*
+		let _test_panic = false;
+		if _test_panic {
+			PANIC!("booted!");
+		}*/
+
+		// Write trap entry point
+    asm!("csrw stvec, {}", in(reg) kernel_entry as usize);
+    asm!("unimp");
+    //printf!("unreachable here!");
+
     loop {
         asm!("wfi", options(nomem, nostack));
     }
-		*/
 }}
 
 #[panic_handler]

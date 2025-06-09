@@ -44,7 +44,7 @@ macro_rules! PANIC {
             format_args!($fmt $(, $args)*)
         );
         loop {
-            { core::arch::asm!("wfi") };
+            unsafe { core::arch::asm!("wfi") };
         }
     }};
 }
